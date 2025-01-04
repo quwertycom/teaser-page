@@ -98,26 +98,30 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        load: true
+        outputs: type=docker,dest=/tmp/docker-image.tar
         tags: local/app:test
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Cache Docker image
-      uses: actions/cache@v3
+    - name: Upload Docker image artifact
+      uses: actions/upload-artifact@v3
       with:
-        path: /tmp/docker-image
-        key: ${{ runner.os }}-docker-${{ github.sha }}
+        name: docker-image
+        path: /tmp/docker-image.tar
 
   docker-test:
     needs: docker-build
     runs-on: ubuntu-latest
     steps:
-    - name: Restore Docker image
-      uses: actions/cache@v3
+    - name: Download Docker image artifact
+      uses: actions/download-artifact@v3
       with:
-        path: /tmp/docker-image
-        key: ${{ runner.os }}-docker-${{ github.sha }}
+        name: docker-image
+        path: /tmp
+
+    - name: Load Docker image
+      run: |
+        docker load --input /tmp/docker-image.tar
 
     - name: Test Docker container
       run: |
