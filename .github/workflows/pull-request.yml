@@ -6,7 +6,7 @@ on:
       - '*'
 
 jobs:
-  build-and-test:
+  initialize:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -20,6 +20,30 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+  build:
+    needs: initialize
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Restore node_modules
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
     - name: Build application
       run: npm run build
 
@@ -29,8 +53,40 @@ jobs:
         path: .next
         key: ${{ runner.os }}-next-build-${{ github.sha }}
 
-  docker:
-    needs: build-and-test
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Restore node_modules
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+    - name: Restore build output
+      uses: actions/cache@v3
+      with:
+        path: .next
+        key: ${{ runner.os }}-next-build-${{ github.sha }}
+
+    - name: Start application and verify
+      run: |
+        npm run start &
+        sleep 10
+        curl -f http://localhost:3000 || exit 1
+      env:
+        PORT: 3000
+
+  docker-build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -46,6 +102,22 @@ jobs:
         tags: local/app:test
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Cache Docker image
+      uses: actions/cache@v3
+      with:
+        path: /tmp/docker-image
+        key: ${{ runner.os }}-docker-${{ github.sha }}
+
+  docker-test:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Restore Docker image
+      uses: actions/cache@v3
+      with:
+        path: /tmp/docker-image
+        key: ${{ runner.os }}-docker-${{ github.sha }}
 
     - name: Test Docker container
       run: |
