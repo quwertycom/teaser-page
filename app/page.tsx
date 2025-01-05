@@ -1,6 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Audiowide, Roboto_Mono, Inter } from 'next/font/google';
+
+const audiowide = Audiowide({ 
+  weight: '400',
+  subsets: ['latin'] 
+});
+
+const robotoMono = Roboto_Mono({ 
+  subsets: ['latin'],
+  weight: ['400', '700']
+});
+
+const inter = Inter({ 
+  subsets: ['latin'],
+  weight: ['400', '700']
+});
 
 interface Particle {
   width: string;
@@ -63,7 +79,7 @@ export default function Home() {
 
       <div className={`relative z-10 w-full h-full flex flex-col items-center justify-center px-4 transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
         <div className="flex flex-col items-center relative animate-content-move">
-          <h1 className="text-6xl sm:text-8xl md:text-9xl font-bold flex tracking-tighter">
+          <h1 className={`${audiowide.className} text-6xl sm:text-8xl md:text-9xl font-bold flex tracking-tighter`}>
             {title.split('').map((char, index) => (
               <span 
                 key={index}
@@ -86,15 +102,16 @@ export default function Home() {
               animationDelay: `${0.25 + title.length * 0.05}s`,
               animationDuration: '0.3s'
             }}></div>
-          <p className="text-lg sm:text-2xl text-zinc-100 font-normal opacity-0 animate-subtitle-enter text-center overflow-hidden mt-8 px-4" 
+          <p className={`${inter.className} text-lg sm:text-2xl text-zinc-100 font-normal opacity-0 animate-subtitle-enter text-center overflow-hidden mt-8 px-4`}
             style={{
               letterSpacing: '0.05em', 
-              textShadow: '0 0 30px rgba(255, 255, 255, 0.2)'
+              textShadow: '0 0 30px rgba(255, 255, 255, 0.2)',
+              lineHeight: '1.6'
             }}>
             Empowering your workflow, everything you need, in one place.
           </p>
           <h2 
-            className="text-3xl sm:text-5xl md:text-6xl text-purple-100 font-bold mt-6 opacity-0 animate-subtitle-enter tracking-widest"
+            className={`${robotoMono.className} text-3xl sm:text-5xl md:text-6xl text-purple-100 font-bold mt-6 opacity-0 animate-subtitle-enter tracking-widest`}
             style={{
               animationDelay: '1.5s'
             }}
