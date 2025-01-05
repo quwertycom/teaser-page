@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "QUWERTY.COM",
-  description: "Coming Soon",
+  description: "Coming Soon"
 };
 
 export default function RootLayout({
